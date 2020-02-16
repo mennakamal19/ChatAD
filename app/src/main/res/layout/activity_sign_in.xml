@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SignInActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:background="@color/colorAccent"
+            />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardMaxElevation="5dp"
+            app:cardCornerRadius="10dp"
+            android:layout_margin="30dp"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_margin="5dp"
+                    android:gravity="center_horizontal">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/image"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:src="@drawable/ic_targe"
+                        android:layout_marginBottom="20dp"
+                        />
+
+
+                    <EditText
+                        android:id="@+id/email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:hint="email"
+                        android:background="@drawable/edittxt"
+                        android:inputType="textEmailAddress"
+                        android:layout_marginBottom="10dp"
+                        />
+
+                    <EditText
+                        android:id="@+id/password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:hint="password"
+                        android:background="@drawable/edittxt"
+                        android:inputType="textPassword"
+                        android:layout_marginBottom="10dp"
+                        />
+
+                </LinearLayout>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary"
+                    android:text="SIGN IN"
+                    android:textColor="@android:color/white"
+                    android:onClick="signin"
+                    android:layout_marginBottom="1dp"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</RelativeLayout>
