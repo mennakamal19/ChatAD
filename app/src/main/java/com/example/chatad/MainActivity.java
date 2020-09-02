@@ -7,16 +7,29 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.chatad.models.usermodel;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -39,53 +52,88 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity
 {
+    private static final String TAG = "MainActivity";
     EditText usernamefield,emailfield,passwordfield,confirmpasswordfield;
-    LinearLayout googlelin;
-    Uri photo;
+    Button signwithgoogle,signwithfacebook;
     String email,username,password,confirmpassword;
-    CircleImageView circleImageView;
+
+    ProgressDialog progressDialog;
 
     FirebaseAuth auth;
     FirebaseDatabase firebaseDatabase;
     DatabaseReference databaseReference;
-    FirebaseStorage firebaseStorage;
-    StorageReference storageReference;
-
-    ProgressDialog progressDialog;
 
     int RC_SIGN_IN = 2002;
-
     GoogleSignInOptions googleSignInOptions;
     GoogleSignInClient googleSignInClient;
+
+    CallbackManager callbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getData();
         fireBase();
-        initviews();
+        getData();
 
-        googlelin = findViewById(R.id.googlelin);
-        googlelin.setOnClickListener(new View.OnClickListener()
+        // Configure Google Sign In
+        signwithgoogle.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                signIn();
+                signInWithGoogle();
             }
         });
 
-        // Configure Google Sign In
-        googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
+        // Configure Facebook Sign In
+        inItFacebook();
+        signwithfacebook.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                LoginManager.getInstance().logInWithReadPermissions(MainActivity.this, Arrays.asList("public_profile"));
+            }
+        });
+    }
+
+    private void inItFacebook()
+    {
+        FacebookSdk.sdkInitialize(this.getApplicationContext());
+
+        callbackManager = CallbackManager.Factory.create();
+
+        LoginManager.getInstance().registerCallback(callbackManager,
+                new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(LoginResult loginResult) {
+                        Log.d("Success", "Login");
+
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Toast.makeText(MainActivity.this, "Login Cancel", Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onError(FacebookException exception) {
+                        Toast.makeText(MainActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
+
     }
 
     private void fireBase()
@@ -93,9 +141,6 @@ public class MainActivity extends AppCompatActivity
         auth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference();
-        firebaseStorage = FirebaseStorage.getInstance();
-        storageReference = firebaseStorage.getReference();
-
         FirebaseUser user = auth.getCurrentUser();
         if(user!= null)
         {
@@ -106,74 +151,49 @@ public class MainActivity extends AppCompatActivity
 
     private void getData()
     {
-        circleImageView = findViewById(R.id.userimage);
         usernamefield = findViewById(R.id.username);
         emailfield = findViewById(R.id.useremail);
         passwordfield = findViewById(R.id.userpassword);
         confirmpasswordfield = findViewById(R.id.userconfirmpassword);
+        signwithgoogle = findViewById(R.id.sign_with_google);
+        signwithfacebook = findViewById(R.id.sign_with_facebook);
     }
 
-    private void signIn()
+    private void signInWithGoogle()
     {
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN); // RC define by any number you want
+        googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
         googleSignInClient = GoogleSignIn.getClient(this,googleSignInOptions);
 
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN); // RC define by any number you want
     }
 
-
-    private void initviews()
-    {
-        circleImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view)
-            { // crop image
-                CropImage.activity()//ha5ood object mn el activity
-                        .setGuidelines(CropImageView.Guidelines.ON_TOUCH) // the guidelines
-                        .setAspectRatio(1,1) // 1 ,1 for square shape
-                        .start(MainActivity.this);
-            }
-        });
-
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
     {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
-        {
-            CropImage.ActivityResult result = CropImage.getActivityResult(data);
-            if (resultCode == Activity.RESULT_OK) //i have be sure result is okay because result could be return empty
-            {
-                if(result!=null)
-                {
-                    photo = result.getUri();
-                    Picasso.get()
-                            .load(photo)
-                            .placeholder(R.drawable.ic_targe)
-                            .error(R.drawable.ic_targe)
-                            .into(circleImageView);
-                }
-            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE)
-            {
-                Exception error = result.getError();
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
+          super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN)
         {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                firebaseAuthWithGoogle(account);
+                if(account != null)
+                {
+                    firebaseAuthWithGoogle(account);
+                }
             } catch (ApiException e)
             {
                 // Google Sign In failed, update UI appropriately
-                //Log.w(TAG, "Google sign in failed", e);
+                 Log.w(TAG, "Google sign in failed", e);
                 // ...
             }
         }
+        // Pass the activity result back to the Facebook SDK
+           callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount account)
@@ -195,7 +215,7 @@ public class MainActivity extends AppCompatActivity
                 });
     }
 
-    public void already(View view)
+    public void alreadyHaveAccount(View view)
     {
         Intent intent = new Intent(MainActivity.this,SignInActivity.class);
         startActivity(intent);
@@ -232,21 +252,13 @@ public class MainActivity extends AppCompatActivity
             confirmpasswordfield.requestFocus();
             return;
         }
-        if(photo==null)
-        {
-            Toast.makeText(getApplicationContext(), "select your picture", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         progressDialog = new ProgressDialog(MainActivity.this);
         progressDialog.setMessage("Wait..");
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER) ; // style bylf dayra
-        progressDialog.setCancelable(false); // law dost fe le fady y3ml cancel wala la
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER) ; // circle style
+        progressDialog.setCancelable(false);
         progressDialog.show();
 
         adduser(username,email,password);
-
-
     }
 
     private void adduser( final String username, final String email, String password)
@@ -260,7 +272,12 @@ public class MainActivity extends AppCompatActivity
                         if (task.isSuccessful())
                         {
                             String id = task.getResult().getUser().getUid(); // id to save data
-                            uploadphoto(username,email,photo,id);
+                            usermodel usermodel = new usermodel(username,email,"https://firebasestorage.googleapis.com/v0/b/chat-1b573.appspot.com/o/images%2Fuser.svg?alt=media&token=3f61b34e-607c-478a-8112-6b67b19b4272");
+                            databaseReference.child("Users").child(id).setValue(usermodel);
+                            progressDialog.dismiss();
+                            startActivity(new Intent(getApplicationContext(),StartActivity.class));
+                            finish();
+
                         }else
                         {
                             progressDialog.dismiss();
@@ -270,39 +287,22 @@ public class MainActivity extends AppCompatActivity
                 });
     }
 
-    private void uploadphoto(final String username, final String email, Uri photo, final String id)
-    {// method to save image in storage
-        UploadTask uploadTask;
-        storageReference = FirebaseStorage.getInstance().getReference().child("images/"+photo.getLastPathSegment());//get image path  , the "/" to return into file
-        uploadTask =storageReference.putFile(photo); // put file:used with images and pdf
-        Task<Uri>task = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>()
-        {
-            @Override
-            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception
-            {
-                return null;
-                //return storageReference.getDownloadUrl();
-            }
-
-        }).addOnCompleteListener(new OnCompleteListener<Uri>() // na mo4h m7taga el method continuation ana m7taga on complete
-        {
-            @Override
-            public void onComplete(@NonNull Task<Uri> task)
-            {
-                Uri imageuri = task.getResult();
-                String pic_url = imageuri.toString();
-
-                savatodb(username,email,pic_url,id);
-            }
-        });
-    }
-
-    private void savatodb(String username, String email, String pic_url,String id)
+    private void printHash()
     {
-        usermodel usermodel = new usermodel(username,email,pic_url);
-        databaseReference.child("Users").child(id).setValue(usermodel);
-        progressDialog.dismiss();
-        startActivity(new Intent(getApplicationContext(),StartActivity.class));
-        finish();
+        // just method to know the /keyHash
+        try
+        {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo("com.example.chatad", PackageManager.GET_SIGNATURES);
+            for(Signature signature : packageInfo.signatures)
+            {
+                MessageDigest messageDigest = MessageDigest.getInstance("SHA");
+                messageDigest.update(signature.toByteArray());
+                Log.d("KeyHash", Base64.encodeToString(messageDigest.digest(),Base64.DEFAULT));
+            }
+        } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e )
+        {
+            e.printStackTrace();
+        }
     }
+
 }

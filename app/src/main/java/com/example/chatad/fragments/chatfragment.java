@@ -20,6 +20,7 @@ import com.example.chatad.R;
 import com.example.chatad.chatActivity;
 import com.example.chatad.models.RoomModel;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,6 +37,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class chatfragment extends Fragment
 {
+    String id;
     View view;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
@@ -67,8 +69,18 @@ public class chatfragment extends Fragment
         recyclerView.addItemDecoration(dividerItemDecoration);
         roomModelList = new ArrayList<>();
 
+        getuid();
         firebase();
         getrooms();
+    }
+    private  String getuid()
+    {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if(user != null)
+        {
+            id = user.getUid();
+        }
+        return id;
     }
 
     private void firebase()
@@ -171,9 +183,5 @@ public class chatfragment extends Fragment
             }
         }
     }
-    private  String getuid()
-    {
-        String id = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        return id;
-    }
+
 }

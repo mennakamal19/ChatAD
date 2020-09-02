@@ -23,7 +23,6 @@ public class SignInActivity extends AppCompatActivity
 {
     EditText emailfield,passwordfield;
     String email,password;
-    CircleImageView circleImageView;
     FirebaseAuth auth;
 
     @Override
@@ -33,32 +32,32 @@ public class SignInActivity extends AppCompatActivity
         setContentView(R.layout.activity_sign_in);
         emailfield = findViewById(R.id.email);
         passwordfield = findViewById(R.id.password);
-        circleImageView = findViewById(R.id.image);
+        auth = FirebaseAuth.getInstance();
+
+    }
+    public void signin(View view)
+    {
         email = emailfield.getText().toString();
         password = passwordfield.getText().toString();
-
         if(TextUtils.isEmpty(email))
         {
             Toast.makeText(getApplicationContext(), "enter your email", Toast.LENGTH_SHORT).show();
         }
-    }
-
-
-    public void signin(View view)
-    {
-        auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>()
-        {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task)
+        else
             {
-                if (task.isSuccessful())
+                auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>()
                 {
-                    Intent intent = new Intent(SignInActivity.this,StartActivity.class);
-                    startActivity(intent);
-                    finish();
-
-                }
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task)
+                    {
+                        if (task.isSuccessful())
+                        {
+                            Intent intent = new Intent(getApplicationContext(),StartActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    }
+                });
             }
-        });
     }
 }

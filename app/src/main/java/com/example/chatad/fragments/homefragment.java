@@ -21,6 +21,7 @@ import com.example.chatad.R;
 import com.example.chatad.models.RoomModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,6 +39,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class homefragment extends Fragment
 {
     View view;
+    String id;
     private FloatingActionButton create_room;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
@@ -69,6 +71,10 @@ public class homefragment extends Fragment
         recyclerView.addItemDecoration(dividerItemDecoration);
         roomModelList = new ArrayList<>();
 
+        getuid();
+        firebase();
+        getrooms();
+
         create_room = view.findViewById(R.id.floating);
         create_room.setOnClickListener(new View.OnClickListener()
         {
@@ -79,8 +85,14 @@ public class homefragment extends Fragment
             }
         });
 
-        firebase();
-        getrooms();
+    }
+    private  String getuid()
+    {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if(user!= null){
+            id =user.getUid();
+        }
+        return id;
     }
 
     private void firebase()
@@ -167,7 +179,7 @@ public class homefragment extends Fragment
             }
             void check (final String key , final RoomModel roomModel)
             {
-                databaseReference.child("Myrooms").child(getuid()).addValueEventListener(new ValueEventListener()
+                databaseReference.child("MyRooms").child(getuid()).addValueEventListener(new ValueEventListener()
                 {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot)
@@ -207,9 +219,4 @@ public class homefragment extends Fragment
         }
     }
 
-    private  String getuid()
-    {
-        String id = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        return id;
-    }
 }

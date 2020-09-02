@@ -27,7 +27,7 @@ public class StartActivity extends AppCompatActivity
         setContentView(R.layout.activity_start);
         navigationView = findViewById(R.id.bottom_navication);
         fragmentManager = getSupportFragmentManager();
-         homefragment homefragment = new homefragment(); // load by default
+        homefragment homefragment = new homefragment(); // load by default
         loadFragment(homefragment);
         navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -35,7 +35,7 @@ public class StartActivity extends AppCompatActivity
             {
                 switch (menuItem.getItemId())
                 {
-                    case R.id.home:
+                    case R.id.myhome:
                         homefragment homefragment1 = new homefragment();
                         loadFragment(homefragment1);
                         return true;
@@ -43,9 +43,10 @@ public class StartActivity extends AppCompatActivity
                         chatfragment chatfragment = new chatfragment();
                         loadFragment(chatfragment);
                         return true;
-                    case R.id.profile:
+                    case R.id.myprofile:
                         profilefragment profilefragment = new profilefragment();
                         loadFragment(profilefragment);
+                        return true;
                 }
                 return false;
             }

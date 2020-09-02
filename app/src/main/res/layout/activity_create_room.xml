@@ -46,9 +46,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="create"
+        android:text="Create"
+        android:textAllCaps="false"
         android:textColor="@android:color/white"
-        android:background="@color/colorPrimary"
+        android:background="@color/colorPrimaryDark"
+        android:layout_margin="5dp"
         android:onClick="createroom"
         />
 

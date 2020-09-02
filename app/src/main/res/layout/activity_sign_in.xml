@@ -14,8 +14,8 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2"
-            android:background="@color/colorAccent"
+            android:layout_weight="1"
+            android:background="#305f"
             />
 
         <View
@@ -55,14 +55,6 @@
                     android:layout_margin="5dp"
                     android:gravity="center_horizontal">
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/image"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/ic_targe"
-                        android:layout_marginBottom="20dp"
-                        />
-
 
                     <EditText
                         android:id="@+id/email"
@@ -91,8 +83,9 @@
                 <Button
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/colorPrimary"
-                    android:text="SIGN IN"
+                    android:background="@color/colorPrimaryDark"
+                    android:text="Sign in"
+                    android:textAllCaps="false"
                     android:textColor="@android:color/white"
                     android:onClick="signin"
                     android:layout_marginBottom="1dp"

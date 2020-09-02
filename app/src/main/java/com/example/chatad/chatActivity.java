@@ -20,6 +20,7 @@ import com.example.chatad.models.Messagemodel;
 import com.example.chatad.models.usermodel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,7 +40,8 @@ public class chatActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
     List<Messagemodel> mm;
-    String msg, name, myimg, roomid;
+    String msg, name, myimg, roomid,id;
+    FloatingActionButton floatingActionButton;
 
     FirebaseDatabase firebaseDatabase;
     DatabaseReference databaseReference;
@@ -57,9 +59,26 @@ public class chatActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         mm = new ArrayList<>();
 
-        getdata(getuID());
-        getchats(roomid);
+        getuID();
         firebase();
+        getdata(getuID());
+        floatingActionButton = findViewById(R.id.send_fab);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                send();
+            }
+        });
+        getchats(roomid);
+    }
+
+    private String getuID()
+    {
+        FirebaseUser user =FirebaseAuth.getInstance().getCurrentUser();
+        if(user!= null)
+            id = user.getUid();
+        return id;
     }
 
     private void firebase()
@@ -96,15 +115,9 @@ public class chatActivity extends AppCompatActivity {
         });
     }
 
-    private String getuID()
-    {
-        String id = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        return id;
-    }
-
     private void getdata(String getuID)
     {
-        databaseReference.child("users").child(getuID).addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child("Users").child(getuID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot)
             {
@@ -112,7 +125,7 @@ public class chatActivity extends AppCompatActivity {
                 if (usermodel != null)
                 {
                     name = usermodel.getUsername();
-                    myimg = usermodel.getPhoto();
+                    myimg = usermodel.getPhoto(); // get it, to send message
                 }
             }
 
@@ -122,7 +135,7 @@ public class chatActivity extends AppCompatActivity {
         });
     }
 
-    public void send(View view)
+    public void send()
     {
         msg = msgbodyfield.getText().toString();
         if(TextUtils.isEmpty(msg))
@@ -131,13 +144,13 @@ public class chatActivity extends AppCompatActivity {
             msgbodyfield.requestFocus();
             return;
         }
-        sendmsg(msg,name,myimg,getuID());
+        sendMessage(name,msg,myimg,getuID());
     }
 
-    private void sendmsg(String msg, String name, String myimg, String getuID)
+    private void sendMessage( String name,String msg, String myimg, String getuID)
     {
-        Messagemodel messagemodel =new  Messagemodel(msg,name,myimg,getuID);
-        String msgkey = databaseReference.child("chats").child(roomid).push().getKey();
+        Messagemodel messagemodel =new  Messagemodel(name,msg,myimg,getuID);
+        String msgkey = databaseReference.child("Chats").child(roomid).push().getKey();
         if (msgkey != null)
         {
             databaseReference.child("Chats").child(roomid).child(msgkey).setValue(messagemodel);
@@ -165,15 +178,17 @@ public class chatActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull chatvh holder, int position)
         {
             Messagemodel messagemodel = messagemodels.get(position);
-            final String id = messagemodel.getId();
+            final String id_msg = messagemodel.getId();
             String name = messagemodel.getName();
             String msg = messagemodel.getMsg();
             String image = messagemodel.getImage();
             holder.name.setText(name);
             holder.msg_body.setText(msg);
-            Picasso.get().load(image).into(holder.circleImageView);
+            Picasso.get().
+                    load(image).
+                    into(holder.circleImageView);
 
-            if (id.equals(getuID()))
+            if (id_msg.equals(getuID()))
             {
                 holder.linearLayout.setGravity(Gravity.END);
             }
@@ -196,7 +211,7 @@ public class chatActivity extends AppCompatActivity {
                 super(itemView);
                 name = itemView.findViewById(R.id.name_txt);
                 msg_body = itemView.findViewById(R.id.msg_txt);
-                circleImageView = itemView.findViewById(R.id.userimage);
+                circleImageView = itemView.findViewById(R.id.user_image);
                 linearLayout = itemView.findViewById(R.id.lin1);
             }
         }
